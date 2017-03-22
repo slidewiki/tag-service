@@ -9,42 +9,62 @@ const boom = require('boom'), //Boom gives us some predefined http codes and pro
     co = require('../common');
 
 module.exports = {
-    //Get slide from database or return NOT FOUND
+    // get a tag by tag-name
     getTag: function(request, reply) {
-        tagDB.get(encodeURIComponent(request.params.id)).then((slide) => {
-            if (co.isEmpty(slide))
+        tagDB.get(request.params.tagName).then((tag) => {
+            if (co.isEmpty(tag)){
                 reply(boom.notFound());
-            else
-                reply(co.rewriteID(slide));
+            }
+            else{
+                reply(tag);
+            }
         }).catch((error) => {
             request.log('error', error);
             reply(boom.badImplementation());
         });
     },
 
-    //Create Slide with new id and payload or return INTERNAL_SERVER_ERROR
-    newSlide: function(request, reply) {
-        tagDB.insert(request.payload).then((inserted) => {
-            if (co.isEmpty(inserted.ops[0]))
-                throw inserted;
-            else
-                reply(co.rewriteID(inserted.ops[0]));
+    // create a new tag
+    newTag: function(request, reply) {
+        tagDB.get(request.payload.tagName).then((tag) => {
+            if (co.isEmpty(tag)){
+                tagDB.insert(request.payload).then((inserted) => {
+                    if (co.isEmpty(inserted.ops[0])){
+                        throw inserted;
+                    }
+                    else{
+                        reply(inserted.ops[0]);
+                    }
+                }).catch((error) => {
+                    request.log('error', error);
+                    reply(boom.badImplementation());
+                });
+            }
+            else{
+                reply(tag);
+            }
         }).catch((error) => {
             request.log('error', error);
             reply(boom.badImplementation());
         });
     },
 
-    //Update Slide with id id and payload or return INTERNAL_SERVER_ERROR
-    replaceSlide: function(request, reply) {
-        tagDB.replace(encodeURIComponent(request.params.id), request.payload).then((replaced) => {
-            if (co.isEmpty(replaced.value))
-                throw replaced;
-            else
+    // replace an existing tag
+    replaceTag: function(request, reply) {
+        tagDB.replace(request.params.tagName, request.payload).then((replaced) => {
+            if (co.isEmpty(replaced.value)){
+                reply(boom.notFound());
+            }
+            else{
                 reply(replaced.value);
+            }
         }).catch((error) => {
             request.log('error', error);
             reply(boom.badImplementation());
         });
     },
+
+    bulkUpload: function(request, reply){
+        reply(boom.badImplementation());
+    }
 };
