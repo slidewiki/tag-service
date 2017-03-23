@@ -26,22 +26,13 @@ module.exports = {
 
     // create a new tag
     newTag: function(request, reply) {
-        tagDB.get(request.payload.tagName).then((tag) => {
-            if (co.isEmpty(tag)){
-                tagDB.insert(request.payload).then((inserted) => {
-                    if (co.isEmpty(inserted.ops[0])){
-                        throw inserted;
-                    }
-                    else{
-                        reply(inserted.ops[0]);
-                    }
-                }).catch((error) => {
-                    request.log('error', error);
-                    reply(boom.badImplementation());
-                });
+
+        tagDB.insert(request.payload).then((inserted) => {
+            if (co.isEmpty(inserted)){
+                throw inserted;
             }
             else{
-                reply(tag);
+                reply(inserted);
             }
         }).catch((error) => {
             request.log('error', error);
@@ -64,7 +55,35 @@ module.exports = {
         });
     },
 
+    // bulk upload tags
     bulkUpload: function(request, reply){
-        reply(boom.badImplementation());
-    }
+        tagDB.bulkUpload(request.payload).then((inserted) => {
+            if (co.isEmpty(inserted)){
+                throw inserted;
+            }
+            else{
+                reply(inserted);
+            }
+        }).catch((error) => {
+            request.log('error', error);
+            reply(boom.badImplementation());
+        });
+    },
+
+    // suggest tags for aucomplete
+    suggest: function(request, reply) {
+        console.log(request.params.offset);
+        console.log(request.params.limit);
+        tagDB.suggest(request.params.q, request.query.offset, request.query.limit).then((results) => {
+            if (co.isEmpty(results)){
+                reply(boom.notFound());
+            }
+            else{
+                reply(results);
+            }
+        }).catch((error) => {
+            request.log('error', error);
+            reply(boom.badImplementation());
+        });
+    },
 };

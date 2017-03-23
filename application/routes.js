@@ -79,4 +79,25 @@ module.exports = function(server) {
             description: 'Bulk upload tags'
         }
     });
+
+    // suggest tags for autocomplete
+    server.route({
+        method: 'GET',
+        path: '/tag/suggest/{q}',
+        handler: handlers.suggest,
+        config: {
+            validate: {
+                params: {
+                    q: Joi.string(),
+
+                },
+                query: {
+                    offset: Joi.string().regex(/^[0-9]$/).default(0),
+                    limit: Joi.string().regex(/^[0-9]$/).default(5),
+                }
+            },
+            tags: ['api'],
+            description: 'Suggest tags for autocomplete'
+        }
+    });
 };

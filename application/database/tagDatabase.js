@@ -7,7 +7,6 @@ Controller for handling mongodb and the data model slide while providing CRUD'is
 const helper = require('./helper'),
     tagModel = require('../models/tag.js');
 
-
 function get(tagName) {
     return helper.connectToDatabase()
         .then((db) => db.collection('tags'))
@@ -18,25 +17,27 @@ function get(tagName) {
 
 function insert(tag) {
     return helper.connectToDatabase()
-        .then((db) => helper.getNextIncrementationValueForCollection(db, 'tags'))
-        .then((newId) => {
-            // console.log('newId', newId);
-            return helper.connectToDatabase() //db connection have to be accessed again in order to work with more than one collection
-                .then((db2) => db2.collection('tags'))
-                .then((col) => {
-                    let valid = false;
-                    tag._id = newId;
-                    try {
-                        valid = tagModel(tag);
-                        if (!valid) {
-                            return tagModel.errors;
-                        }
-                        return col.insertOne(tag);
-                    } catch (e) {
-                        console.log('validation failed', e);
-                    }
-                    return;
-                }); //id is created and concatinated automatically
+        .then((db2) => db2.collection('tags'))
+        .then((col) => {
+            let valid = false;
+            try {
+                valid = tagModel(tag);
+                if (!valid) {
+                    return tagModel.errors;
+                }
+
+                // insert tag if there is no other with the same tag-name
+                return col.update(
+                    { tagName: tag.tagName },
+                    { $setOnInsert: tag },
+                    { upsert: true }
+                ).then( () => {     // return existing or newly inserted tag
+                    return get(tag.tagName);
+                });
+            } catch (e) {
+                console.log('validation failed', e);
+            }
+            return;
         });
 }
 
@@ -60,5 +61,30 @@ function replace(tagName, tag) {
         });
 }
 
+function bulkUpload(tags){
+    try {
+        let promises = [];
 
-module.exports = { get, insert, replace };
+        tags.forEach( (newTag) => {
+            promises.push(insert(newTag));
+        });
+
+        return Promise.all(promises);
+    } catch (e) {
+        console.log('validation failed', e);
+    }
+    return;
+}
+
+function suggest(q, offset, limit){
+
+    let query = {tagName: new RegExp(q, 'i')};
+console.log(offset + ' ' + limit);
+    return helper.connectToDatabase()
+    .then((db) => db.collection('tags'))
+    .then((col) => col.find(query).skip(parseInt(offset)).limit(parseInt(limit)))
+    .then((cursor) => cursor.toArray());
+
+}
+
+module.exports = { get, insert, replace, bulkUpload, suggest };
