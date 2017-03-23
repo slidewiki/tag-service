@@ -35,7 +35,7 @@ const tag = {
         },
         timestamp: {
             type: 'string',
-            format: 'datetime'
+            // format: 'datetime'
         }
     },
     required: ['tagName', 'kind']

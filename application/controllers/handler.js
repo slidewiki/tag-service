@@ -72,8 +72,6 @@ module.exports = {
 
     // suggest tags for aucomplete
     suggest: function(request, reply) {
-        console.log(request.params.offset);
-        console.log(request.params.limit);
         tagDB.suggest(request.params.q, request.query.offset, request.query.limit).then((results) => {
             if (co.isEmpty(results)){
                 reply(boom.notFound());

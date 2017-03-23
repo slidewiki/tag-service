@@ -79,7 +79,7 @@ function bulkUpload(tags){
 function suggest(q, offset, limit){
 
     let query = {tagName: new RegExp(q, 'i')};
-console.log(offset + ' ' + limit);
+
     return helper.connectToDatabase()
     .then((db) => db.collection('tags'))
     .then((col) => col.find(query).skip(parseInt(offset)).limit(parseInt(limit)))
