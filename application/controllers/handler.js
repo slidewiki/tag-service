@@ -62,7 +62,9 @@ module.exports = {
                 throw inserted;
             }
             else{
-                reply(inserted);
+                reply(inserted.map( (tag) => {
+                    return co.rewriteID(tag);
+                }));
             }
         }).catch((error) => {
             request.log('error', error);

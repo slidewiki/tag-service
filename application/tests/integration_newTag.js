@@ -24,7 +24,6 @@ describe('REST API', () => {
     let tag = {
         tagName: 'dummy',
         name: 'Dummy',
-        kind: 'tag',
         uri: 'http://dbpedia.org',
         userId: 1
     };
@@ -33,14 +32,12 @@ describe('REST API', () => {
         {
             tagName: 'dummy2',
             name: 'Dummy1',
-            kind: 'tag',
             uri: 'http://dbpedia.org',
             userId: 1
         },
         {
             tagName: 'dummy3',
             name: 'Dummy2',
-            kind: 'NLP',
             uri: 'http://dbpedia.org',
             userId: 2
         }
@@ -87,10 +84,9 @@ describe('REST API', () => {
                 response.statusCode.should.equal(200);
                 response.payload.should.be.a('string');
                 let payload = JSON.parse(response.payload);
-                payload.should.be.an('object').and.contain.keys('_id', 'tagName', 'name', 'kind', 'uri', 'userId');
+                payload.should.be.an('object').and.contain.keys('id', 'tagName', 'name', 'uri', 'userId', 'timestamp');
                 payload.tagName.should.equal('dummy');
                 payload.name.should.equal('Dummy');
-                payload.kind.should.equal('tag');
                 payload.uri.should.equal('http://dbpedia.org');
                 payload.userId.should.equal(1);
                 done();
@@ -103,11 +99,10 @@ describe('REST API', () => {
             server.inject(options4, (response) => {
                 response.should.be.an('object').and.contain.keys('statusCode','payload');
                 response.statusCode.should.equal(200);
-                // response.payload.should.be.a('string');
                 let payload = JSON.parse(response.payload);
                 payload.should.be.an('array');
                 payload.forEach( (tag) => {
-                    tag.should.be.an('object').and.contain.keys('_id', 'tagName', 'name', 'kind', 'uri', 'userId');
+                    tag.should.be.an('object').and.contain.keys('id', 'tagName', 'name', 'uri', 'userId', 'timestamp');
                 });
                 done();
             });
@@ -124,10 +119,9 @@ describe('REST API', () => {
                 response.statusCode.should.equal(200);
                 response.payload.should.be.a('string');
                 let payload = JSON.parse(response.payload);
-                payload.should.be.an('object').and.contain.keys('_id', 'tagName', 'name', 'kind', 'uri', 'userId');
+                payload.should.be.an('object').and.contain.keys('id', 'tagName', 'name', 'uri', 'userId', 'timestamp');
                 payload.tagName.should.equal('dummy');
                 payload.name.should.equal('Dummy');
-                payload.kind.should.equal('tag');
                 payload.uri.should.equal('http://dbpedia.org');
                 payload.userId.should.equal(1);
                 done();
