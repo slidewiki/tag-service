@@ -5,7 +5,8 @@ Controller for handling mongodb and the data model slide while providing CRUD'is
 'use strict';
 
 const helper = require('./helper'),
-    tagModel = require('../models/tag.js');
+    tagModel = require('../models/tag.js'),
+    co = require('../common');
 
 function get(tagName) {
     return helper.connectToDatabase()
@@ -91,7 +92,7 @@ function bulkUpload(tags){
 
 function suggest(q, limit){
 
-    let query = {tagName: new RegExp(q, 'i')};
+    let query = {tagName: new RegExp(co.escape(q), 'i')};
     let projection = {
         _id: 0,
         tagName: 1,

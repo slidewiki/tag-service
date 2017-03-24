@@ -18,6 +18,10 @@ module.exports = {
         return o;
     },
 
+    escape: function(text) {
+        return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    },
+
     parseAjvValidationErrors: function(array) {
         const beautifyKey = (key) => {
             if (key.startsWith('.'))
