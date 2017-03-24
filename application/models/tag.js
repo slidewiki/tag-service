@@ -23,10 +23,6 @@ const tag = {
         name: {
             type: 'string'
         },
-        kind: {
-            type: 'string',
-            enum: ['tag', 'NLP', 'annotation']
-        },
         uri: {
             type: 'string'
         },
@@ -34,11 +30,10 @@ const tag = {
             type: 'number'
         },
         timestamp: {
-            type: 'string',
-            // format: 'datetime'
+            type: 'string'
         }
     },
-    required: ['tagName', 'kind']
+    required: ['tagName']
 };
 
 module.exports = ajv.compile(tag);

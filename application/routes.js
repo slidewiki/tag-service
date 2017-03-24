@@ -11,10 +11,9 @@ const apiModels = {};
 apiModels.tag = Joi.object().keys({
     tagName: Joi.string(),
     name: Joi.string(),
-    kind: Joi.string().valid('tag', 'NLP', 'annotation'),
     uri: Joi.string(),
     userId: Joi.number().integer(),
-}).requiredKeys('tagName', 'kind');
+}).requiredKeys('tagName');
 
 module.exports = function(server) {
 
@@ -92,8 +91,7 @@ module.exports = function(server) {
 
                 },
                 query: {
-                    offset: Joi.string().regex(/^[0-9]$/).default(0),
-                    limit: Joi.string().regex(/^[0-9]$/).default(5),
+                    limit: Joi.string().regex(/^[0-9]+$/).default(5),
                 }
             },
             tags: ['api'],

@@ -16,7 +16,7 @@ module.exports = {
                 reply(boom.notFound());
             }
             else{
-                reply(tag);
+                reply(co.rewriteID(tag));
             }
         }).catch((error) => {
             request.log('error', error);
@@ -32,7 +32,7 @@ module.exports = {
                 throw inserted;
             }
             else{
-                reply(inserted);
+                reply(co.rewriteID(inserted));
             }
         }).catch((error) => {
             request.log('error', error);
@@ -47,7 +47,7 @@ module.exports = {
                 reply(boom.notFound());
             }
             else{
-                reply(replaced.value);
+                reply(co.rewriteID(replaced.value));
             }
         }).catch((error) => {
             request.log('error', error);
@@ -72,13 +72,8 @@ module.exports = {
 
     // suggest tags for aucomplete
     suggest: function(request, reply) {
-        tagDB.suggest(request.params.q, request.query.offset, request.query.limit).then((results) => {
-            if (co.isEmpty(results)){
-                reply(boom.notFound());
-            }
-            else{
-                reply(results);
-            }
+        tagDB.suggest(request.params.q, request.query.limit).then((results) => {
+            reply(results);
         }).catch((error) => {
             request.log('error', error);
             reply(boom.badImplementation());
