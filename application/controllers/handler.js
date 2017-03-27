@@ -57,7 +57,7 @@ module.exports = {
 
     // bulk upload tags
     bulkUpload: function(request, reply){
-        tagDB.bulkUpload(request.payload).then((inserted) => {
+        tagDB.bulkUpload(request.payload.tags, request.payload.user).then((inserted) => {
             reply(inserted.map( (tag) => {
                 return co.rewriteID(tag);
             }));

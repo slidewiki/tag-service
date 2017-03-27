@@ -12,8 +12,8 @@ apiModels.tag = Joi.object().keys({
     tagName: Joi.string(),
     name: Joi.string(),
     uri: Joi.string(),
-    userId: Joi.number().integer(),
-}).requiredKeys('tagName');
+    user: Joi.number().integer(),
+});
 
 module.exports = function(server) {
 
@@ -40,7 +40,7 @@ module.exports = function(server) {
         handler: handlers.newTag,
         config: {
             validate: {
-                payload: apiModels.tag
+                payload: apiModels.tag.requiredKeys('tagName', 'user')
             },
             tags: ['api'],
             description: 'Create a new tag'
@@ -57,7 +57,7 @@ module.exports = function(server) {
                 params: {
                     tagName: Joi.string(),
                 },
-                payload: apiModels.tag
+                payload: apiModels.tag.requiredKeys('tagName', 'user')
             },
             tags: ['api'],
             description: 'Replace a tag'
@@ -72,7 +72,10 @@ module.exports = function(server) {
         handler: handlers.bulkUpload,
         config: {
             validate: {
-                payload: Joi.array().items(apiModels.tag)
+                payload: Joi.object().keys({
+                    user: Joi.number().integer(),
+                    tags: Joi.array().items(apiModels.tag.requiredKeys('tagName'))
+                }).requiredKeys('user', 'tags'),
             },
             tags: ['api'],
             description: 'Bulk upload tags'
@@ -88,7 +91,6 @@ module.exports = function(server) {
             validate: {
                 params: {
                     q: Joi.string(),
-
                 },
                 query: {
                     limit: Joi.string().regex(/^[0-9]+$/).default(5),

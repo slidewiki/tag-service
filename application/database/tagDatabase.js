@@ -75,11 +75,12 @@ function replace(tagName, tag) {
         });
 }
 
-function bulkUpload(tags){
+function bulkUpload(tags, user){
     try {
         let promises = [];
 
         tags.forEach( (newTag) => {
+            newTag.user = user;
             promises.push(insert(newTag));
         });
 

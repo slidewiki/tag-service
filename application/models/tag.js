@@ -26,14 +26,14 @@ const tag = {
         uri: {
             type: 'string'
         },
-        userId: {
+        user: {
             type: 'number'
         },
         timestamp: {
             type: 'string'
         }
     },
-    required: ['tagName']
+    required: ['tagName', 'user']
 };
 
 module.exports = ajv.compile(tag);
