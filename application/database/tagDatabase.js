@@ -92,7 +92,7 @@ function bulkUpload(tags){
 
 function suggest(q, limit){
 
-    let query = {tagName: new RegExp(co.escape(q), 'i')};
+    let query = {tagName: new RegExp('^' + co.escape(q), 'i')};
     let projection = {
         _id: 0,
         tagName: 1,
