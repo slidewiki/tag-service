@@ -58,14 +58,9 @@ module.exports = {
     // bulk upload tags
     bulkUpload: function(request, reply){
         tagDB.bulkUpload(request.payload).then((inserted) => {
-            if (co.isEmpty(inserted)){
-                throw inserted;
-            }
-            else{
-                reply(inserted.map( (tag) => {
-                    return co.rewriteID(tag);
-                }));
-            }
+            reply(inserted.map( (tag) => {
+                return co.rewriteID(tag);
+            }));
         }).catch((error) => {
             request.log('error', error);
             reply(boom.badImplementation());
