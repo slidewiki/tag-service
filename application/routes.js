@@ -9,7 +9,7 @@ const Joi = require('joi'),
 
 const apiModels = {};
 apiModels.tag = Joi.object().keys({
-    tagName: Joi.string(),
+    tagName: Joi.string().regex(/^[A-Za-z0-9-._~ ]+$/),
     name: Joi.string(),
     uri: Joi.string(),
     user: Joi.number().integer(),
