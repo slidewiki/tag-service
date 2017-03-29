@@ -62,7 +62,7 @@ describe('REST API', () => {
 
     let options3 = {
         method: 'GET',
-        url: '/tag/suggest/',
+        url: '/suggest/',
         headers: {
             'Content-Type': 'application/json'
         }
