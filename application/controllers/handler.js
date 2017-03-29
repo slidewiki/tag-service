@@ -70,7 +70,7 @@ module.exports = {
     // suggest tags for aucomplete
     suggest: function(request, reply) {
         tagDB.suggest(request.params.q, request.query.limit).then((results) => {
-            reply(results);
+            reply(results.map( (res) => { return co.rewriteID(res); }));
         }).catch((error) => {
             request.log('error', error);
             reply(boom.badImplementation());

@@ -85,7 +85,7 @@ module.exports = function(server) {
     // suggest tags for autocomplete
     server.route({
         method: 'GET',
-        path: '/tag/suggest/{q}',
+        path: '/suggest/{q}',
         handler: handlers.suggest,
         config: {
             validate: {

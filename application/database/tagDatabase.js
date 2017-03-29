@@ -94,15 +94,16 @@ function bulkUpload(tags, user){
 function suggest(q, limit){
 
     let query = {tagName: new RegExp('^' + co.escape(q), 'i')};
-    let projection = {
-        _id: 0,
-        tagName: 1,
-        name: 1,
-        uri: 1,
-    };
+    // let projection = {
+    //     _id: 0,
+    //     tagName: 1,
+    //     name: 1,
+    //     uri: 1,
+    //     user: 1
+    // };
     return helper.connectToDatabase()
     .then((db) => db.collection('tags'))
-    .then((col) => col.find(query, projection)
+    .then((col) => col.find(query/*,projection */)
                         .skip(0)    // offeset
                         .limit(parseInt(limit)))
     .then((cursor) => cursor.toArray());
