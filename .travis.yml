@@ -22,8 +22,8 @@ script:
 - npm run test:unit
 - npm run test:integration
 after_success:
-- openssl aes-256-cbc -K $encrypted_eca2051faa16_key -iv $encrypted_eca2051faa16_iv -in deployment_keys.tar.enc -out deployment_keys.tar -d
 - cd ..
+- openssl aes-256-cbc -K $encrypted_eca2051faa16_key -iv $encrypted_eca2051faa16_iv -in deployment_keys.tar.enc -out deployment_keys.tar -d
 - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] ; then
   ./travis_scripts/dockerhub.sh ; fi
 - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] ; then
