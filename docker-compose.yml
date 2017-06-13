@@ -1,5 +1,5 @@
 tagservice:
-  image: slidewiki/tagservice
+  image: slidewiki/tagservice:latest-dev
   restart: on-failure:5
   expose:
     - "80"

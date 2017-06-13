@@ -2,4 +2,4 @@
 
 docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 docker build -t slidewiki/tagservice .
-docker push slidewiki/tagservice
+docker push slidewiki/tagservice:latest-dev
