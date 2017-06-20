@@ -20,7 +20,7 @@ const tag = {
         tagName: {
             type: 'string'
         },
-        name: {
+        defaultName: {
             type: 'string'
         },
         uri: {
@@ -33,7 +33,7 @@ const tag = {
             type: 'string'
         }
     },
-    required: ['tagName', 'user']
+    required: ['user']
 };
 
 module.exports = ajv.compile(tag);

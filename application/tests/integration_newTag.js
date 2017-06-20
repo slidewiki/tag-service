@@ -22,22 +22,19 @@ describe('REST API', () => {
     });
 
     let tag = {
-        tagName: 'dummy',
-        name: 'Dummy',
+        defaultName: 'dummy',
         uri: 'http://dbpedia.org',
         user: 1
     };
 
     let newTags = [
         {
-            tagName: 'dummy2',
-            name: 'Dummy1',
+            defaultName: 'dummy2',
             uri: 'http://dbpedia.org',
             user: 1
         },
         {
-            tagName: 'dummy3',
-            name: 'Dummy2',
+            defaultName: 'dummy3',
             uri: 'http://dbpedia.org',
             user: 2
         }
@@ -87,9 +84,8 @@ describe('REST API', () => {
                 response.statusCode.should.equal(200);
                 response.payload.should.be.a('string');
                 let payload = JSON.parse(response.payload);
-                payload.should.be.an('object').and.contain.keys('id', 'tagName', 'name', 'uri', 'user', 'timestamp');
-                payload.tagName.should.equal('dummy');
-                payload.name.should.equal('Dummy');
+                payload.should.be.an('object').and.contain.keys('id', 'tagName', 'defaultName', 'uri', 'user', 'timestamp');
+                payload.defaultName.should.equal('dummy');
                 payload.uri.should.equal('http://dbpedia.org');
                 payload.user.should.equal(1);
                 done();
@@ -105,7 +101,7 @@ describe('REST API', () => {
                 let payload = JSON.parse(response.payload);
                 payload.should.be.an('array');
                 payload.forEach( (tag) => {
-                    tag.should.be.an('object').and.contain.keys('id', 'tagName', 'name', 'uri', 'user', 'timestamp');
+                    tag.should.be.an('object').and.contain.keys('id', 'tagName', 'defaultName', 'uri', 'user', 'timestamp');
                 });
                 done();
             });
@@ -122,9 +118,8 @@ describe('REST API', () => {
                 response.statusCode.should.equal(200);
                 response.payload.should.be.a('string');
                 let payload = JSON.parse(response.payload);
-                payload.should.be.an('object').and.contain.keys('id', 'tagName', 'name', 'uri', 'user', 'timestamp');
+                payload.should.be.an('object').and.contain.keys('id', 'tagName', 'uri', 'user', 'timestamp');
                 payload.tagName.should.equal('dummy');
-                payload.name.should.equal('Dummy');
                 payload.uri.should.equal('http://dbpedia.org');
                 payload.user.should.equal(1);
                 done();
@@ -135,7 +130,7 @@ describe('REST API', () => {
     context('when suggesting tags', () => {
         it('should reply it', (done) => {
             let opt = JSON.parse(JSON.stringify(options3));
-            opt.url += 'dummy';
+            opt.url += 'd';
 
             server.inject(opt, (response) => {
                 response.should.be.an('object').and.contain.keys('statusCode','payload');
