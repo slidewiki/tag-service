@@ -33,14 +33,9 @@ module.exports = {
         if(newTag.hasOwnProperty('tagName')){
             tagDB.get(newTag.tagName).then ( (existingTag) => {
                 if(!co.isEmpty(existingTag)){
-                    return reply(co.rewriteID(existingTag));
+                    reply(co.rewriteID(existingTag));
                 } else {
-                    tagDB.newTag(newTag).then( (inserted) => {
-                        reply(co.rewriteID(inserted));
-                    }).catch( (err) => {
-                        request.log('error', err);
-                        reply(boom.badImplementation());
-                    });
+                    reply(boom.notFound());
                 }
             }).catch( (error) => {
                 request.log('error', error);

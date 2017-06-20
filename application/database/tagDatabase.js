@@ -9,7 +9,6 @@ const helper = require('./helper'),
     co = require('../common');
 
 const slugify = require('slugify');
-const async = require('async');
 
 let indexCreated = false;
 
@@ -58,23 +57,19 @@ function insert(tag) {
     return getNextId().then((newId) => {
         return getTagsCollection().then((col) => {
             let valid = false;
-            try {
-                valid = tagModel(tag);
-                if (!valid) {
-                    return tagModel.errors;
-                }
 
-                // set new incremental id
-                tag._id = newId;
-
-                // set timestamp
-                tag.timestamp = (new Date()).toISOString();
-
-                return col.insertOne(tag);
-            } catch (e) {
-                console.log('validation failed', e);
+            valid = tagModel(tag);
+            if (!valid) {
+                throw new Error('Validation error');
             }
-            return;
+
+            // set new incremental id
+            tag._id = newId;
+
+            // set timestamp
+            tag.timestamp = (new Date()).toISOString();
+
+            return col.insertOne(tag);
         });
     });
 }
@@ -102,6 +97,7 @@ function newTag(newTag){
         return self.insert(newTag).then((inserted) => {
             return inserted.ops[0];
         });
+        // catch and check here for err.code === 11000 (duplicate key) and call self
     });
 }
 
