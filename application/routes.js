@@ -40,7 +40,7 @@ module.exports = function(server) {
         handler: handlers.newTag,
         config: {
             validate: {
-                payload: apiModels.tag.requiredKeys('defaultName', 'user')
+                payload: apiModels.tag.or('defaultName', 'tagName')
             },
             tags: ['api'],
             description: 'Create a new tag'
@@ -74,7 +74,7 @@ module.exports = function(server) {
             validate: {
                 payload: Joi.object().keys({
                     user: Joi.number().integer(),
-                    tags: Joi.array().items(apiModels.tag.requiredKeys('defaultName'))
+                    tags: Joi.array().items(apiModels.tag.or('defaultName', 'tagName'))
                 }).requiredKeys('user', 'tags'),
             },
             tags: ['api'],
