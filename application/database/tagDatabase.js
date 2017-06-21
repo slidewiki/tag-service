@@ -77,7 +77,7 @@ function insert(tag) {
 
 function newTag(newTag){
     // generate a slug from the new tag's default name
-    let candidateTagName = slugify(newTag.defaultName);
+    let candidateTagName = slugify(newTag.defaultName).toLowerCase();
 
     // get all matches containing the candidate slug name
     return self.getAllMatches(candidateTagName).then( (existingTagNames) => {
