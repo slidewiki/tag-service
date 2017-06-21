@@ -39,7 +39,8 @@ function get(tagName) {
     return getTagsCollection()
         .then((col) => col.findOne({
             tagName: tagName
-        }));
+        }))
+        .then((tag) => fillDefaultName(tag));
 }
 
 function getAllMatches(tagName){
@@ -125,7 +126,10 @@ function replace(tagName, tag) {
 
 function suggest(q, limit){
 
-    let query = {defaultName: new RegExp('^' + co.escape(q), 'i')};
+    let query = { $or: [
+        { defaultName: new RegExp('^' + co.escape(q), 'i') },
+        { defaultName: { $exists: false}, tagName: new RegExp('^' + co.escape(q), 'i') },
+    ]};
     let projection = {
         _id: 0,
         tagName: 1,
@@ -136,8 +140,17 @@ function suggest(q, limit){
     .then((col) => col.find(query, projection)
                         .skip(0)    // offset
                         .limit(parseInt(limit)))
-    .then((cursor) => cursor.toArray());
+    .then((cursor) => cursor.toArray())
+    .then((result) => result.map(fillDefaultName));
 
 }
 
 let self = module.exports = { get, getAllMatches, insert, newTag, replace, suggest };
+
+
+function fillDefaultName(tag)  {
+    if (!tag) return tag;
+
+    tag.defaultName = tag.defaultName || tag.tagName;
+    return tag;
+}
