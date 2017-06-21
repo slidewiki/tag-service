@@ -84,6 +84,10 @@ module.exports = {
                         tagsInserted.push(co.rewriteID(existingTag));
                         callback();
                     } else {
+                        // it is not stored already, let's save it
+                        // TODO figure out what to do with the defaultName if it ALSO exists
+                        newTag.defaultName = newTag.tagName;
+
                         tagDB.newTag(newTag).then( (inserted) => {
                             tagsInserted.push(co.rewriteID(inserted));
                             callback();
@@ -102,7 +106,12 @@ module.exports = {
                     callback(err);
                 });
             }
-        }, () => {
+        }, (err) => {
+            if (err) {
+                request.log('error', err);
+                return reply(boom.badImplementation());
+            }
+
             reply(tagsInserted);
         });
     },
