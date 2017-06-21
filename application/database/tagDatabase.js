@@ -8,53 +8,102 @@ const helper = require('./helper'),
     tagModel = require('../models/tag.js'),
     co = require('../common');
 
-function get(tagName) {
+const slugify = require('slugify');
+
+let indexCreated = false;
+
+function getTagsCollection(){
+    if(!indexCreated){
+        return createIndex('tagName').then( () => {
+            indexCreated = true;
+            return getTagsCollection();
+        });
+    }
+
+    return helper.connectToDatabase()
+    .then((db) => db.collection('tags'));
+}
+
+function getNextId(){
+    return helper.connectToDatabase()
+    .then((db) => helper.getNextIncrementationValueForCollection(db, 'tags'));
+}
+
+function createIndex(indexName){
     return helper.connectToDatabase()
         .then((db) => db.collection('tags'))
+        .then((col) => col.createIndex(indexName, { unique: true }));
+}
+
+function get(tagName) {
+    return getTagsCollection()
         .then((col) => col.findOne({
             tagName: tagName
-        }));
+        }))
+        .then((tag) => fillDefaultName(tag));
+}
+
+function getAllMatches(tagName){
+    let query = {tagName: new RegExp(`^${tagName}$|^${tagName}-\\d+$`)};
+    let projection = {
+        tagName: 1,
+        defaultName: 1,
+    };
+    return getTagsCollection()
+    .then((col) => col.find(query, projection))
+    .then((cursor) => cursor.toArray());
 }
 
 function insert(tag) {
-    return helper.connectToDatabase()
-        .then((db) => helper.getNextIncrementationValueForCollection(db, 'tags'))
-        .then((newId) => {
-            return helper.connectToDatabase()
-                .then((db2) => db2.collection('tags'))
-                .then((col) => {
-                    let valid = false;
-                    try {
-                        valid = tagModel(tag);
-                        if (!valid) {
-                            return tagModel.errors;
-                        }
+    return getNextId().then((newId) => {
+        return getTagsCollection().then((col) => {
+            let valid = false;
 
-                        // set new incremental id
-                        tag._id = newId;
+            valid = tagModel(tag);
+            if (!valid) {
+                throw new Error('Validation error');
+            }
 
-                        // set timestamp
-                        tag.timestamp = (new Date()).toISOString();
+            // set new incremental id
+            tag._id = newId;
 
-                        // insert tag if there is no other with the same tag-name
-                        return col.update(
-                            { tagName: tag.tagName },
-                            { $setOnInsert: tag },
-                            { upsert: true }
-                        ).then( () => {     // return existing or newly inserted tag
-                            return get(tag.tagName);
-                        });
-                    } catch (e) {
-                        console.log('validation failed', e);
-                    }
-                    return;
-                });
+            // set timestamp
+            tag.timestamp = (new Date()).toISOString();
+
+            return col.insertOne(tag);
         });
+    });
+}
+
+function newTag(newTag){
+    // generate a slug from the new tag's default name
+    let candidateTagName = slugify(newTag.defaultName).toLowerCase();
+
+    // get all matches containing the candidate slug name
+    return self.getAllMatches(candidateTagName).then( (existingTagNames) => {
+        newTag.tagName = candidateTagName;
+
+        // get tagName numbers of matching tagNames found
+        let tagNumbers = existingTagNames.map( (t) => {
+            return (t.tagName !== candidateTagName)
+            ? parseInt(t.tagName.substring(candidateTagName.length + 1)): 0;
+        });
+
+        if(tagNumbers.length > 0){
+            // set new tagName by concatenating a number to the slug
+            let maxNumber = Math.max(...tagNumbers);
+            newTag.tagName = `${candidateTagName}-${maxNumber+1}`;
+        }
+
+        return self.insert(newTag).then((inserted) => {
+            return inserted.ops[0];
+        });
+        // catch and check here for err.code === 11000 (duplicate key) and call self
+    });
 }
 
 function replace(tagName, tag) {
-    return helper.connectToDatabase()
-        .then((db) => db.collection('tags'))
+    return getTagsCollection()
         .then((col) => {
             let valid = false;
             try {
@@ -75,38 +124,33 @@ function replace(tagName, tag) {
         });
 }
 
-function bulkUpload(tags, user){
-    try {
-        let promises = [];
-
-        tags.forEach( (newTag) => {
-            newTag.user = user;
-            promises.push(insert(newTag));
-        });
-
-        return Promise.all(promises);
-    } catch (e) {
-        console.log('validation failed', e);
-    }
-    return;
-}
-
 function suggest(q, limit){
 
-    let query = {tagName: new RegExp('^' + co.escape(q), 'i')};
+    let query = { $or: [
+        { defaultName: new RegExp('^' + co.escape(q), 'i') },
+        { defaultName: { $exists: false}, tagName: new RegExp('^' + co.escape(q), 'i') },
+    ]};
     let projection = {
         _id: 0,
         tagName: 1,
-        name: 1,
-        uri: 1,
+        defaultName: 1,
+        // uri: 1,
     };
-    return helper.connectToDatabase()
-    .then((db) => db.collection('tags'))
+    return getTagsCollection()
     .then((col) => col.find(query, projection)
-                        .skip(0)    // offeset
+                        .skip(0)    // offset
                         .limit(parseInt(limit)))
-    .then((cursor) => cursor.toArray());
+    .then((cursor) => cursor.toArray())
+    .then((result) => result.map(fillDefaultName));
 
 }
 
-module.exports = { get, insert, replace, bulkUpload, suggest };
+let self = module.exports = { get, getAllMatches, insert, newTag, replace, suggest };
+
+
+function fillDefaultName(tag)  {
+    if (!tag) return tag;
+
+    tag.defaultName = tag.defaultName || tag.tagName;
+    return tag;
+}

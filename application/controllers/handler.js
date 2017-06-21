@@ -7,6 +7,7 @@ Handles the requests by executing stuff and replying to the client. Uses promise
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
     tagDB = require('../database/tagDatabase'), //Database functions specific for tags
     co = require('../common');
+const async = require('async');
 
 module.exports = {
     // get a tag by tag-name
@@ -26,18 +27,28 @@ module.exports = {
 
     // create a new tag
     newTag: function(request, reply) {
+        let newTag = request.payload;
 
-        tagDB.insert(request.payload).then((inserted) => {
-            if (co.isEmpty(inserted)){
-                throw inserted;
-            }
-            else{
+        // if tag has property tagName, then return the stored tag
+        if(newTag.hasOwnProperty('tagName')){
+            tagDB.get(newTag.tagName).then ( (existingTag) => {
+                if(!co.isEmpty(existingTag)){
+                    reply(co.rewriteID(existingTag));
+                } else {
+                    reply(boom.notFound());
+                }
+            }).catch( (error) => {
+                request.log('error', error);
+                reply(boom.badImplementation());
+            });
+        } else {
+            tagDB.newTag(newTag).then( (inserted) => {
                 reply(co.rewriteID(inserted));
-            }
-        }).catch((error) => {
-            request.log('error', error);
-            reply(boom.badImplementation());
-        });
+            }).catch( (err) => {
+                request.log('error', err);
+                reply(boom.badImplementation());
+            });
+        }
     },
 
     // replace an existing tag
@@ -57,13 +68,51 @@ module.exports = {
 
     // bulk upload tags
     bulkUpload: function(request, reply){
-        tagDB.bulkUpload(request.payload.tags, request.payload.user).then((inserted) => {
-            reply(inserted.map( (tag) => {
-                return co.rewriteID(tag);
-            }));
-        }).catch((error) => {
-            request.log('error', error);
-            reply(boom.badImplementation());
+        let newTags = request.payload.tags.map( (t) => {
+            t.user = request.payload.user;
+            return t;
+        });
+
+        let tagsInserted = [];
+
+        async.eachSeries(newTags, (newTag, callback) => {
+
+            // if tag has property tagName, then return the stored tag
+            if(newTag.hasOwnProperty('tagName')){
+                tagDB.get(newTag.tagName).then ( (existingTag) => {
+                    if(!co.isEmpty(existingTag)){
+                        tagsInserted.push(co.rewriteID(existingTag));
+                        callback();
+                    } else {
+                        // it is not stored already, let's save it
+                        // TODO figure out what to do with the defaultName if it ALSO exists
+                        newTag.defaultName = newTag.tagName;
+
+                        tagDB.newTag(newTag).then( (inserted) => {
+                            tagsInserted.push(co.rewriteID(inserted));
+                            callback();
+                        }).catch( (err) => {
+                            callback(err);
+                        });
+                    }
+                }).catch( (err) => {
+                    callback(err);
+                });
+            } else {
+                tagDB.newTag(newTag).then( (inserted) => {
+                    tagsInserted.push(co.rewriteID(inserted));
+                    callback();
+                }).catch( (err) => {
+                    callback(err);
+                });
+            }
+        }, (err) => {
+            if (err) {
+                request.log('error', err);
+                return reply(boom.badImplementation());
+            }
+
+            reply(tagsInserted);
         });
     },
 
