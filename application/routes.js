@@ -9,8 +9,8 @@ const Joi = require('joi'),
 
 const apiModels = {};
 apiModels.tag = Joi.object().keys({
-    tagName: Joi.string().regex(/^[A-Za-z0-9-._~ ]+$/),
-    name: Joi.string(),
+    tagName: Joi.string(),
+    defaultName: Joi.string(),
     uri: Joi.string(),
     user: Joi.number().integer(),
 });
@@ -40,7 +40,7 @@ module.exports = function(server) {
         handler: handlers.newTag,
         config: {
             validate: {
-                payload: apiModels.tag.requiredKeys('tagName', 'user')
+                payload: apiModels.tag.or('defaultName', 'tagName')
             },
             tags: ['api'],
             description: 'Create a new tag'
@@ -57,7 +57,7 @@ module.exports = function(server) {
                 params: {
                     tagName: Joi.string(),
                 },
-                payload: apiModels.tag.requiredKeys('tagName', 'user')
+                payload: apiModels.tag.requiredKeys('tagName', 'defaultName', 'user')
             },
             tags: ['api'],
             description: 'Replace a tag'
@@ -74,7 +74,7 @@ module.exports = function(server) {
             validate: {
                 payload: Joi.object().keys({
                     user: Joi.number().integer(),
-                    tags: Joi.array().items(apiModels.tag.requiredKeys('tagName'))
+                    tags: Joi.array().items(apiModels.tag.or('defaultName', 'tagName'))
                 }).requiredKeys('user', 'tags'),
             },
             tags: ['api'],
