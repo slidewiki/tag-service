@@ -8,7 +8,6 @@
 [![Coverage Status](https://coveralls.io/repos/github/slidewiki/tag-service/badge.svg?branch=master)](https://coveralls.io/github/slidewiki/tag-service?branch=master)
 
 
-
 [starting point for development of tag-microservice](https://slidewiki.atlassian.net/wiki/pages/viewpage.action?pageId=42340514)
 
 ### Install NodeJS ###
