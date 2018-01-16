@@ -8,6 +8,7 @@ const boom = require('boom'), //Boom gives us some predefined http codes and pro
     tagDB = require('../database/tagDatabase'), //Database functions specific for tags
     co = require('../common');
 const async = require('async');
+const slugify = require('slugify');
 
 module.exports = {
     // get a tag by tag-name
@@ -79,16 +80,20 @@ module.exports = {
 
             // if tag has property tagName, then return the stored tag
             if(newTag.hasOwnProperty('tagName')){
-                tagDB.get(newTag.tagName).then ( (existingTag) => {
+                let tagName = slugify(newTag.tagName).toLowerCase();
+                tagDB.get(tagName).then ( (existingTag) => {
                     if(!co.isEmpty(existingTag)){
                         tagsInserted.push(co.rewriteID(existingTag));
                         callback();
                     } else {
                         // it is not stored already, let's save it
-                        // TODO figure out what to do with the defaultName if it ALSO exists
-                        newTag.defaultName = newTag.tagName;
+                        if (!newTag.hasOwnProperty('defaultName')) {
+                            newTag.defaultName = newTag.tagName;
+                        }
+                        // use the slug for tagName
+                        newTag.tagName = tagName;
 
-                        tagDB.newTag(newTag).then( (inserted) => {
+                        return tagDB.insert(newTag).then((inserted) => inserted.ops[0]).then((inserted) => {
                             tagsInserted.push(co.rewriteID(inserted));
                             callback();
                         }).catch( (err) => {
