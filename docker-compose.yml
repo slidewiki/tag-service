@@ -12,5 +12,3 @@ tagservice:
     - VIRTUAL_HOST=tagservice.experimental.slidewiki.org
     - LETSENCRYPT_HOST=tagservice.experimental.slidewiki.org
     - LETSENCRYPT_EMAIL=meissner@informatik.uni-leipzig.de
-#    - LETSENCRYPT_TEST=true
-

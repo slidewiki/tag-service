@@ -10,29 +10,14 @@ const helper = require('./helper'),
 
 const slugify = require('slugify');
 
-let indexCreated = false;
-
 function getTagsCollection(){
-    if(!indexCreated){
-        return createIndex('tagName').then( () => {
-            indexCreated = true;
-            return getTagsCollection();
-        });
-    }
-
     return helper.connectToDatabase()
-    .then((db) => db.collection('tags'));
+        .then((db) => db.collection('tags'));
 }
 
 function getNextId(){
     return helper.connectToDatabase()
-    .then((db) => helper.getNextIncrementationValueForCollection(db, 'tags'));
-}
-
-function createIndex(indexName){
-    return helper.connectToDatabase()
-        .then((db) => db.collection('tags'))
-        .then((col) => col.createIndex(indexName, { unique: true }));
+        .then((db) => helper.getNextIncrementationValueForCollection(db, 'tags'));
 }
 
 function get(tagName) {
@@ -50,8 +35,8 @@ function getAllMatches(tagName){
         defaultName: 1,
     };
     return getTagsCollection()
-    .then((col) => col.find(query, projection))
-    .then((cursor) => cursor.toArray());
+        .then((col) => col.find(query, projection))
+        .then((cursor) => cursor.toArray());
 }
 
 function insert(tag) {
@@ -86,7 +71,7 @@ function newTag(newTag){
         // get tagName numbers of matching tagNames found
         let tagNumbers = existingTagNames.map( (t) => {
             return (t.tagName !== candidateTagName)
-            ? parseInt(t.tagName.substring(candidateTagName.length + 1)): 0;
+                ? parseInt(t.tagName.substring(candidateTagName.length + 1)): 0;
         });
 
         if(tagNumbers.length > 0){
@@ -137,11 +122,11 @@ function suggest(q, limit){
         // uri: 1,
     };
     return getTagsCollection()
-    .then((col) => col.find(query, projection)
-                        .skip(0)    // offset
-                        .limit(parseInt(limit)))
-    .then((cursor) => cursor.toArray())
-    .then((result) => result.map(fillDefaultName));
+        .then((col) => col.find(query, projection)
+            .skip(0)    // offset
+            .limit(parseInt(limit)))
+        .then((cursor) => cursor.toArray())
+        .then((result) => result.map(fillDefaultName));
 
 }
 
