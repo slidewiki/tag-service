@@ -42,11 +42,8 @@ function getAllMatches(tagName){
 function insert(tag) {
     return getNextId().then((newId) => {
         return getTagsCollection().then((col) => {
-            let valid = false;
-
-            valid = tagModel(tag);
-            if (!valid) {
-                throw new Error('Validation error');
+            if (!tagModel(tag)) {
+                throw new Error(JSON.stringify(tagModel.errors));
             }
 
             // set new incremental id
@@ -109,14 +106,20 @@ function replace(tagName, tag) {
         });
 }
 
-function suggest(q, limit){
+function suggest(q, { limit, tagType }) {
 
     let query = { $or: [
         { defaultName: new RegExp('^' + co.escape(q), 'i') },
         { defaultName: { $exists: false}, tagName: new RegExp('^' + co.escape(q), 'i') },
     ]};
+
+    if (tagType) {
+        query.tagType = tagType;
+    }
+
     let projection = {
         _id: 0,
+        tagType: 1,
         tagName: 1,
         defaultName: 1,
         // uri: 1,
@@ -130,8 +133,53 @@ function suggest(q, limit){
 
 }
 
-let self = module.exports = { get, getAllMatches, insert, newTag, replace, suggest };
+function list(query, options) {
+    // sort stage
+    let sortStage = {};
+    if (options.sort === 'tagName') {
+        sortStage = { tagName: 1 };
+    } else if(options.sort === 'defaultName') {
+        sortStage = { defaultName: 1 };
+    } else if(options.sort === 'timestamp') {
+        sortStage = { timestamp: -1 };
+    } else {
+        sortStage = { _id: 1 };
+    }
 
+    return getTagsCollection().then((tags) => {
+        let pipeline = [
+            { $match: query },
+            {
+                $project: {
+                    user: 1,
+                    tagType: 1,
+                    tagName: 1,
+                    defaultName: 1,
+                    timestamp: 1
+                },
+            },
+        ];
+
+        // just count the result set
+        if (options.countOnly) {
+            pipeline.push({ $count: 'totalCount' });
+        } else {
+            // add sorting
+            pipeline.push({ $sort: sortStage });
+
+            // some routes don't support pagination
+            if (options.pageSize) {
+                pipeline.push({ $skip: (options.page - 1) * options.pageSize });
+                pipeline.push({ $limit: options.pageSize });
+            }
+        }
+
+        return tags.aggregate(pipeline);
+
+    }).then( (result) => result.toArray());
+}
+
+let self = module.exports = { get, getAllMatches, insert, newTag, replace, suggest, list };
 
 function fillDefaultName(tag)  {
     if (!tag) return tag;

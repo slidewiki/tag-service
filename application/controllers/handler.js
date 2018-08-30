@@ -5,11 +5,14 @@ Handles the requests by executing stuff and replying to the client. Uses promise
 
 'use strict';
 
+const _ = require('lodash');
+
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
     tagDB = require('../database/tagDatabase'), //Database functions specific for tags
     co = require('../common');
 const async = require('async');
 const slugify = require('slugify');
+const querystring = require('querystring');
 
 module.exports = {
     // get a tag by tag-name
@@ -124,11 +127,69 @@ module.exports = {
 
     // suggest tags for aucomplete
     suggest: function(request, reply) {
-        tagDB.suggest(request.params.q, request.query.limit).then((results) => {
+        tagDB.suggest(request.params.q, request.query).then((results) => {
             reply(results);
         }).catch((error) => {
             request.log('error', error);
             reply(boom.badImplementation());
         });
     },
+
+    listTags: function(request, reply) {
+        let options = _.pick(request.query, 'sort', 'page', 'pageSize');
+        let query = _.pick(request.query, 'user', 'tagType');
+        if (_.size(request.query.tagName)) {
+            query.tagName = { $in: request.query.tagName };
+        }
+
+        return countAndList(query, options).then((response) => {
+            reply(response);
+        }).catch((err) => {
+            if (err.isBoom) return reply(err);
+            request.log('error', err);
+            reply(boom.badImplementation());
+        });
+
+    },
+
 };
+
+function countAndList(query, options){
+    options.countOnly = true;
+    return tagDB.list(query, options).then( (result) => {
+
+        delete options.countOnly;
+        let totalCount = (result.length === 0) ? 0 : result[0].totalCount;
+
+        return tagDB.list(query, options).then((items) => {
+            if (!options.pageSize) {
+                return items;
+            }
+
+            // form links for previous and next results
+            let links = {};
+            let page = options.page;
+
+            if (options.page > 1){
+                options.page = page - 1;
+                links.previous = `/tags?${querystring.stringify(options)}`;
+            }
+
+            if(options.page * options.pageSize < totalCount){
+                options.page = page + 1;
+                links.next = `/tags?${querystring.stringify(options)}`;
+            }
+
+            let response = {};
+            response._meta = {
+                page: page, 
+                pageSize: options.pageSize,
+                totalCount: totalCount,
+                sort: options.sort,
+                links: links
+            };
+            response.items = items;
+            return response;
+        });
+    });
+}

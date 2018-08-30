@@ -9,6 +9,7 @@ const Joi = require('joi'),
 
 const apiModels = {};
 apiModels.tag = Joi.object().keys({
+    tagType: Joi.string().valid('topic', 'level'),
     tagName: Joi.string(),
     defaultName: Joi.string(),
     uri: Joi.string(),
@@ -16,6 +17,27 @@ apiModels.tag = Joi.object().keys({
 });
 
 module.exports = function(server) {
+
+    // get a list of tags
+    server.route({
+        method: 'GET',
+        path: '/tags',
+        handler: handlers.listTags,
+        config: {
+            validate: {
+                query: {
+                    user: Joi.number().integer().description('Return only tags owned by user with set id'),
+                    tagType: Joi.string().valid('topic', 'level').description('Filter by tagType'),
+                    tagName: Joi.array().items(Joi.string()).single().description('Filter by tagName'),
+                    sort: Joi.string().valid('id', 'tagName', 'defaultName', 'timestamp').default('tagName'),
+                    page: Joi.number().integer().positive().default(1).description('Page number'),
+                    pageSize: Joi.number().integer().positive().default(10).description('Number of items per page'),
+                },
+            },
+            tags: ['api'],
+            description: 'Retrieve tags metadata with optional filter, sorting, and paging parameters',
+        }
+    });
 
     // get a tag by tag-name
     server.route({
@@ -94,6 +116,7 @@ module.exports = function(server) {
                 },
                 query: {
                     limit: Joi.string().regex(/^[0-9]+$/).default(5),
+                    tagType: Joi.string().valid('topic', 'level'),
                 }
             },
             tags: ['api'],
