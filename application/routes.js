@@ -9,7 +9,7 @@ const Joi = require('joi'),
 
 const apiModels = {};
 apiModels.tag = Joi.object().keys({
-    tagType: Joi.string().valid('topic', 'level'),
+    tagType: Joi.string().valid('topic'),
     tagName: Joi.string(),
     defaultName: Joi.string(),
     uri: Joi.string(),
@@ -27,7 +27,7 @@ module.exports = function(server) {
             validate: {
                 query: {
                     user: Joi.number().integer().description('Return only tags owned by user with set id'),
-                    tagType: Joi.string().valid('topic', 'level').description('Filter by tagType'),
+                    tagType: Joi.string().valid('topic').description('Filter by tagType'),
                     tagName: Joi.array().items(Joi.string()).single().description('Filter by tagName'),
                     sort: Joi.string().valid('id', 'tagName', 'defaultName', 'timestamp').default('tagName'),
                     page: Joi.number().integer().positive().default(1).description('Page number'),
@@ -116,7 +116,7 @@ module.exports = function(server) {
                 },
                 query: {
                     limit: Joi.string().regex(/^[0-9]+$/).default(5),
-                    tagType: Joi.string().valid('topic', 'level'),
+                    tagType: Joi.string().valid('topic'),
                 }
             },
             tags: ['api'],
