@@ -136,7 +136,7 @@ module.exports = {
     },
 
     listTags: function(request, reply) {
-        let options = _.pick(request.query, 'sort', 'page', 'pageSize');
+        let options = _.pick(request.query, 'sort', 'page', 'pageSize', 'paging');
         let query = _.pick(request.query, 'user', 'tagType');
         if (_.size(request.query.tagName)) {
             query.tagName = { $in: request.query.tagName };
@@ -162,7 +162,7 @@ function countAndList(query, options){
         let totalCount = (result.length === 0) ? 0 : result[0].totalCount;
 
         return tagDB.list(query, options).then((items) => {
-            if (!options.pageSize) {
+            if (!options.paging) {
                 return items;
             }
 

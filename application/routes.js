@@ -32,6 +32,7 @@ module.exports = function(server) {
                     sort: Joi.string().valid('id', 'tagName', 'defaultName', 'timestamp').default('tagName'),
                     page: Joi.number().integer().positive().default(1).description('Page number'),
                     pageSize: Joi.number().integer().positive().default(10).description('Number of items per page'),
+                    paging: Joi.boolean().truthy('1').falsy('0').default(true).description('Return tags using pages, otherwise all tags directly'),
                 },
             },
             tags: ['api'],
