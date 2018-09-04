@@ -85,25 +85,18 @@ function newTag(newTag){
 }
 
 function replace(tagName, tag) {
-    return getTagsCollection()
-        .then((col) => {
-            let valid = false;
-            try {
-                valid = tagModel(tag);
-                if (!valid) {
-                    return tagModel.errors;
-                }
-                // set timestamp
-                tag.timestamp = (new Date()).toISOString();
+    return getTagsCollection().then((col) => {
+        // set the tagName (immutable)
+        tag.tagName = tagName;
+        // set timestamp
+        tag.timestamp = (new Date()).toISOString();
 
-                return col.findOneAndReplace({
-                    tagName: tagName
-                }, tag);
-            } catch (e) {
-                console.log('validation failed', e);
-            }
-            return;
-        });
+        if (!tagModel(tag)) {
+            throw new Error(JSON.stringify(tagModel.errors));
+        }
+
+        return col.findOneAndReplace({ tagName }, tag).then((result) => result.value);
+    });
 }
 
 function suggest(q, { limit, tagType }) {

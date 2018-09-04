@@ -80,7 +80,12 @@ module.exports = function(server) {
                 params: {
                     tagName: Joi.string(),
                 },
-                payload: apiModels.tag.requiredKeys('tagName', 'defaultName', 'user')
+                payload: Joi.object().keys({
+                    tagType: Joi.string().valid('topic'),
+                    defaultName: Joi.string(),
+                    uri: Joi.string(),
+                    user: Joi.number().integer(),
+                }).requiredKeys('defaultName', 'user'),
             },
             tags: ['api'],
             description: 'Replace a tag'

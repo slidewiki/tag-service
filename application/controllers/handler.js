@@ -59,12 +59,12 @@ module.exports = {
     // replace an existing tag
     replaceTag: function(request, reply) {
         tagDB.replace(request.params.tagName, request.payload).then((replaced) => {
-            if (co.isEmpty(replaced.value)){
+            if (!replaced) {
                 reply(boom.notFound());
+            } else {
+                reply();
             }
-            else{
-                reply(co.rewriteID(replaced.value));
-            }
+
         }).catch((error) => {
             request.log('error', error);
             reply(boom.badImplementation());
