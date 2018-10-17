@@ -1,0 +1,90 @@
+#!/usr/bin/env node
+'use strict';
+
+const slugify = require('slugify');
+
+const tagDB = require('../database/tagDatabase');
+
+// included in http://uis.unesco.org/sites/default/files/documents/international-standard-classification-of-education-isced-2011-en.pdf (Annex III)
+// TODO make this a CSV file
+const topicTags = {
+    '0'    : 'General programmes',
+    '01'   : 'Basic programmes',
+    '08'   : 'Literacy and numeracy ',
+    '09'   : 'Personal development',
+    '1'    : 'Education',
+    '14'   : 'Teacher training and education science',
+    '2'    : 'Humanities and arts',
+    '21'   : 'Arts',
+    '22'   : 'Humanities',
+    '3'    : 'Social sciences, business and law',
+    '31'   : 'Social and behavioural science',
+    '32'   : 'Journalism and information',
+    '34'   : 'Business and administration',
+    '38'   : 'Law',
+    '4'    : 'Science',
+    '42'   : 'Life sciences',
+    '44'   : 'Physical sciences',
+    '46'   : 'Mathematics and statistics',
+    '48'   : 'Computing',
+    '5'    : 'Engineering, manufacturing and construction',
+    '52'   : 'Engineering and engineering trades',
+    '54'   : 'Manufacturing and processing',
+    '58'   : 'Architecture and building',
+    '6'    : 'Agriculture',
+    '62'   : 'Agriculture, forestry and fishery',
+    '64'   : 'Veterinary',
+    '7'    : 'Health and welfare',
+    '72'   : 'Health',
+    '76'   : 'Social services',
+    '8'    : 'Services',
+    '81'   : 'Personal services',
+    '84'   : 'Transport services',
+    '85'   : 'Environmental protection',
+    '86'   : 'Security services',
+};
+
+// do this one by one
+Object.entries(topicTags).reduce((p, [code, name]) => {
+    // todo somehow support storing of the code (?)
+    let topicTag = {
+        user: -1, // system user
+        tagType: 'topic',
+        defaultName: name,
+    };
+
+    let candidateTagName = slugify(name).toLowerCase();
+    return p.then((tagsInserted) => {
+        return tagDB.get(candidateTagName).then((existingTag) => {
+            if (existingTag) {
+                // do not import it again if it's a topic tag
+                if (existingTag.tagType === 'topic') {
+                    console.info(`skipping existing topic tag ${name}`);
+                    return tagsInserted;
+                } else {
+                    console.warn(`will include a new topic tag ${name} that already exists as non-topic tag`);
+                }
+            }
+
+            return tagDB.newTag(topicTag).then((inserted) => {
+                tagsInserted.push(inserted);
+                return tagsInserted;
+            });
+        }).catch((err) => {
+            console.warn(`could not store topic tag ${name}, reason was ${err.message}`);
+        });
+
+    });
+
+}, Promise.resolve([])).then((tagsInserted) => {
+    // all is well
+    console.info(`finished importing ${tagsInserted.length} tags`);
+    let failed = Object.keys(topicTags).length - tagsInserted.length;
+    if (failed) {
+        console.info(`skipped storing ${failed} tags`);
+    }
+    process.exit(0);
+}).catch((err) => {
+    console.error(err);
+    process.exit(-1);
+});
