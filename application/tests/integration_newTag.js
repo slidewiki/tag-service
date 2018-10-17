@@ -1,6 +1,8 @@
 /* eslint dot-notation: 0, no-unused-vars: 0 */
 'use strict';
 
+const qs = require('querystring');
+
 //Mocking is missing completely TODO add mocked objects
 
 describe('REST API', () => {
@@ -59,7 +61,7 @@ describe('REST API', () => {
 
     let options3 = {
         method: 'GET',
-        url: '/tag/suggest/',
+        url: '/tag/suggest',
         headers: {
             'Content-Type': 'application/json'
         }
@@ -130,7 +132,7 @@ describe('REST API', () => {
     context('when suggesting tags', () => {
         it('should reply it', (done) => {
             let opt = JSON.parse(JSON.stringify(options3));
-            opt.url += 'd';
+            opt.url += '?' + qs.stringify({ q: 'd' });
 
             server.inject(opt, (response) => {
                 response.should.be.an('object').and.contain.keys('statusCode','payload');
