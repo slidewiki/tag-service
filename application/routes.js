@@ -113,14 +113,12 @@ module.exports = function(server) {
     // suggest tags for autocomplete
     server.route({
         method: 'GET',
-        path: '/tag/suggest/{q}',
+        path: '/tag/suggest',
         handler: handlers.suggest,
         config: {
             validate: {
-                params: {
-                    q: Joi.string(),
-                },
                 query: {
+                    q: Joi.string().empty('').allow(''),
                     limit: Joi.string().regex(/^[0-9]+$/).default(5),
                     tagType: Joi.string().valid('topic'),
                 }

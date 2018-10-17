@@ -99,7 +99,8 @@ function replace(tagName, tag) {
     });
 }
 
-function suggest(q, { limit, tagType }) {
+function suggest({ q, limit, tagType }) {
+    if (!q) return Promise.resolve([]);
 
     let query = { $or: [
         { defaultName: new RegExp('^' + co.escape(q), 'i') },

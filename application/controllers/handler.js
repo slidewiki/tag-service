@@ -127,7 +127,7 @@ module.exports = {
 
     // suggest tags for aucomplete
     suggest: function(request, reply) {
-        tagDB.suggest(request.params.q, request.query).then((results) => {
+        tagDB.suggest(request.query).then((results) => {
             reply(results);
         }).catch((error) => {
             request.log('error', error);
