@@ -12,7 +12,7 @@
   "main": "server.js",
   "scripts": {
     "clean": "rm -R ./node_modules/ ./coverage/",
-    "lint": "eslint -c .eslintrc \"./**/*.js\"",
+    "lint": "eslint -c .eslintrc \"**/*.js\" \"bin/*\"",
     "test": "NODE_ENV=test mocha ./tests/*.js",
     "test:unit": "NODE_ENV=test mocha ./tests/unit_*.js",
     "test:integration": "NODE_ENV=test mocha ./tests/integration_*.js",
@@ -36,6 +36,7 @@
     "hapi-swagger": "^7.6.0",
     "inert": "^4.2.0",
     "joi": "^10.6.0",
+    "lodash": "^4.17.10",
     "mongodb": "^2.2.28",
     "slugify": "^1.1.0",
     "vision": "^4.1.0"

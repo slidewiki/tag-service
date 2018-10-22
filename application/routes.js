@@ -9,6 +9,7 @@ const Joi = require('joi'),
 
 const apiModels = {};
 apiModels.tag = Joi.object().keys({
+    tagType: Joi.string().valid('topic'),
     tagName: Joi.string(),
     defaultName: Joi.string(),
     uri: Joi.string(),
@@ -16,6 +17,28 @@ apiModels.tag = Joi.object().keys({
 });
 
 module.exports = function(server) {
+
+    // get a list of tags
+    server.route({
+        method: 'GET',
+        path: '/tags',
+        handler: handlers.listTags,
+        config: {
+            validate: {
+                query: {
+                    user: Joi.number().integer().description('Return only tags owned by user with set id'),
+                    tagType: Joi.string().valid('topic').description('Filter by tagType'),
+                    tagName: Joi.array().items(Joi.string()).single().description('Filter by tagName'),
+                    sort: Joi.string().valid('id', 'tagName', 'defaultName', 'timestamp').default('tagName'),
+                    page: Joi.number().integer().positive().default(1).description('Page number'),
+                    pageSize: Joi.number().integer().positive().default(10).description('Number of items per page'),
+                    paging: Joi.boolean().truthy('1').falsy('0').default(true).description('Return tags using pages, otherwise all tags directly'),
+                },
+            },
+            tags: ['api'],
+            description: 'Retrieve tags metadata with optional filter, sorting, and paging parameters',
+        }
+    });
 
     // get a tag by tag-name
     server.route({
@@ -57,7 +80,12 @@ module.exports = function(server) {
                 params: {
                     tagName: Joi.string(),
                 },
-                payload: apiModels.tag.requiredKeys('tagName', 'defaultName', 'user')
+                payload: Joi.object().keys({
+                    tagType: Joi.string().valid('topic'),
+                    defaultName: Joi.string(),
+                    uri: Joi.string(),
+                    user: Joi.number().integer(),
+                }).requiredKeys('defaultName', 'user'),
             },
             tags: ['api'],
             description: 'Replace a tag'
@@ -85,15 +113,14 @@ module.exports = function(server) {
     // suggest tags for autocomplete
     server.route({
         method: 'GET',
-        path: '/tag/suggest/{q}',
+        path: '/tag/suggest',
         handler: handlers.suggest,
         config: {
             validate: {
-                params: {
-                    q: Joi.string(),
-                },
                 query: {
+                    q: Joi.string().empty('').allow(''),
                     limit: Joi.string().regex(/^[0-9]+$/).default(5),
+                    tagType: Joi.string().valid('topic'),
                 }
             },
             tags: ['api'],
