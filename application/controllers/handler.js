@@ -142,6 +142,12 @@ module.exports = {
             query.tagName = { $in: request.query.tagName };
         }
 
+        if (query.tagType === 'any') {
+            delete query.tagType;
+        } else if (!query.tagType) {
+            query.tagType = null;
+        }
+
         return countAndList(query, options).then((response) => {
             reply(response);
         }).catch((err) => {

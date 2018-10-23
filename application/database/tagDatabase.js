@@ -107,7 +107,9 @@ function suggest({ q, limit, tagType }) {
         { defaultName: { $exists: false}, tagName: new RegExp('^' + co.escape(q), 'i') },
     ]};
 
-    if (tagType) {
+    if (!tagType) {
+        query.tagType = null;
+    } else if (tagType !== 'any') {
         query.tagType = tagType;
     }
 
